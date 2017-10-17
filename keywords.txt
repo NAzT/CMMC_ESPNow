@@ -12,6 +12,8 @@ ESPNow		KEYWORD1
 #######################################
 
 begin		KEYWORD2
+on_message_recv		KEYWORD2
+on_message_sent		KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
