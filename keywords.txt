@@ -11,7 +11,7 @@ ESPNow		KEYWORD1
 # Methods and Functions (KEYWORD2)
 #######################################
 
-begin 					KEYWORD2
+begin		KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
@@ -20,3 +20,6 @@ begin 					KEYWORD2
 #######################################
 # Constants (LITERAL1)
 #######################################
+
+NOW_MODE_SLAVE			KEYWORD2
+NOW_MODE_CONTROLLER		KEYWORD2
