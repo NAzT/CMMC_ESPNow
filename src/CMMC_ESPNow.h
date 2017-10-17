@@ -20,15 +20,14 @@ class CMMC_ESPNow
       // constructor
       CMMC_ESPNow() {
         static CMMC_ESPNow* that = this;
-        auto dummy_recv =[](uint8_t *macaddr, uint8_t *data, uint8_t len) {};
-        auto dummy_sent =[](uint8_t *macaddr, u8 status) {};
-        this->_user_on_message_recv = dummy_recv;
-        this->_user_on_message_sent = dummy_sent;
+        this->_user_on_message_recv = [](uint8_t *macaddr, uint8_t *data, uint8_t len) {};
+        this->_user_on_message_sent = [](uint8_t *macaddr, u8 status) {};
+
         // set system cb
         this->_system_on_message_recv = [](uint8_t *macaddr, uint8_t *data, uint8_t len) {
           that->_user_on_message_recv(macaddr, data, len);
         };
-
+        
         this->_system_on_message_sent = [](uint8_t *macaddr, u8 status) {
           that->_user_on_message_sent(macaddr, status);
         };
