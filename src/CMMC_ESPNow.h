@@ -19,15 +19,24 @@ class CMMC_ESPNow
   public:
       // constructor
       CMMC_ESPNow() {
-        esp_now_recv_cb_t dummy_recv;
-        esp_now_send_cb_t dummy_sent;
+        static CMMC_ESPNow* that = this;
+        auto dummy_recv =[](uint8_t *macaddr, uint8_t *data, uint8_t len) {};
+        auto dummy_sent =[](uint8_t *macaddr, u8 status) {};
         this->_user_on_message_recv = dummy_recv;
         this->_user_on_message_sent = dummy_sent;
+        // set system cb
+        this->_system_on_message_recv = [](uint8_t *macaddr, uint8_t *data, uint8_t len) {
+          that->_user_on_message_recv(macaddr, data, len);
+        };
+
+        this->_system_on_message_sent = [](uint8_t *macaddr, u8 status) {
+          that->_user_on_message_sent(macaddr, status);
+        };
       }
       ~CMMC_ESPNow() {}
       void init(int mode);
       void send(uint8_t *mac, u8* data, int len) {
-        esp_now_send(mac, (u8*) &data, len);
+        esp_now_send(mac, data, len);
       }
 
       void on_message_recv(esp_now_recv_cb_t cb) {
@@ -42,6 +51,9 @@ class CMMC_ESPNow
         }
       }
   private:
+    esp_now_recv_cb_t _system_on_message_recv;
+    esp_now_send_cb_t _system_on_message_sent;
+
     esp_now_recv_cb_t _user_on_message_recv;
     esp_now_send_cb_t _user_on_message_sent;
 };
