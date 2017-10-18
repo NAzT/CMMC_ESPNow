@@ -34,6 +34,7 @@ class CMMC_ESPNow
 
       // set system cb
       this->_system_on_message_recv = [](uint8_t *macaddr, uint8_t *data, uint8_t len) {
+        that->_user_debug_cb("_system_on_message_recv");
         that->_waiting_message_has_arrived = true;
         that->_user_on_message_recv(macaddr, data, len);
       };
@@ -59,24 +60,29 @@ class CMMC_ESPNow
       esp_now_send(mac, data, len);
       delay(RETRIES_DELAY);
 
-      while(this->_enable_retries && this->_message_sent_status != 0) {
-        USER_DEBUG_PRINTF("try to send over espnow...");
-        esp_now_send(mac, data, len);
-        delay(RETRIES_DELAY);
-        if (++retries > MAX_RETRIES) {
-          break;
+      if (this->_enable_retries) {
+        while(this->_message_sent_status != 0) {
+          USER_DEBUG_PRINTF("try to send over espnow...");
+          esp_now_send(mac, data, len);
+          delay(RETRIES_DELAY);
+          if (++retries > MAX_RETRIES) {
+            break;
+          }
         }
       }
 
-      uint32_t timeout_at_ms = millis() + wait_time;
-      while (millis() < timeout_at_ms) {
-        USER_DEBUG_PRINTF("Waiting a command message...");
-        delay(RETRIES_DELAY);
-      }
-
-      if (cb != NULL && this->_waiting_message_has_arrived==false) {
-        USER_DEBUG_PRINTF("Timeout...");
-        cb();
+      if (cb != NULL) {
+        uint32_t timeout_at_ms = millis() + wait_time;
+        USER_DEBUG_PRINTF("timeout at %lu", timeout_at_ms);
+        USER_DEBUG_PRINTF("millis = %lu", millis());
+        while (millis() < timeout_at_ms) {
+          USER_DEBUG_PRINTF("Waiting a command message...");
+          delay(RETRIES_DELAY);
+        }
+        if (this->_waiting_message_has_arrived==false) {
+          USER_DEBUG_PRINTF("Timeout... %d", _waiting_message_has_arrived);
+          cb();
+        }
       }
     }
 
@@ -90,6 +96,11 @@ class CMMC_ESPNow
       if (cb != NULL) {
         this->_user_on_message_sent = cb;
       }
+    }
+
+    void debug(cmmc_debug_cb_t cb) {
+      if (cb!=NULL)
+        this->_user_debug_cb = cb;
     }
 
     void enable_retries(bool s) {
