@@ -8,10 +8,8 @@ void CMMC_ESPNow::init(int mode) {
     Serial.println("====================");
     Serial.println("   MODE = ESPNOW    ");
     Serial.println("====================");
-    WiFi.disconnect();
     Serial.println("Initializing ESPNOW...");
     Serial.println("Initializing... SLAVE");
-    esp_now_set_self_role(ESP_NOW_ROLE_SLAVE);
   }
   else {
     WiFi.disconnect();
