@@ -1,14 +1,13 @@
 #ifndef CMMC_ESPNow_H
 #define CMMC_ESPNow_H
 
-#include "ESP8266WiFi.h"
-#include <functional>
-
 #ifdef ESP8266
-extern "C" {
-#include "user_interface.h"
-#include "espnow.h"
-}
+  extern "C" {
+    #include "user_interface.h"
+    #include "espnow.h"
+  } 
+  #include "ESP8266WiFi.h"
+  #include <functional>
 #endif
 
 #define NOW_MODE_SLAVE 1
@@ -26,97 +25,28 @@ class CMMC_ESPNow
 {
   public:
     // constructor
-    CMMC_ESPNow() {
-      static CMMC_ESPNow* that = this;
-      this->_user_debug_cb = [](const char* s) { };
-      this->_user_on_message_recv = [](uint8_t *macaddr, uint8_t *data, uint8_t len) {};
-      this->_user_on_message_sent = [](uint8_t *macaddr, u8 status) {};
-
-      // set system cb
-      this->_system_on_message_recv = [](uint8_t *macaddr, uint8_t *data, uint8_t len) {
-        that->_user_debug_cb("_system_on_message_recv");
-        that->_waiting_message_has_arrived = true;
-        that->_user_on_message_recv(macaddr, data, len);
-      };
-
-      this->_system_on_message_sent = [](uint8_t *macaddr, u8 status) {
-        that->_message_sent_status = status;
-        that->_user_on_message_sent(macaddr, status);
-      };
-    }
-
+    CMMC_ESPNow(); 
     ~CMMC_ESPNow() {}
 
     void init(int mode);
     void enable_retries() { }
-    void send(uint8_t *mac, u8* data, int len, void_cb_t cb = NULL, uint32_t wait_time = 500) {
-      this->_message_sent_status = -1;
-      this->_waiting_message_has_arrived = false;
-
-      uint32_t MAX_RETRIES   = 10;
-      uint32_t RETRIES_DELAY = 50;
-      int retries = 0;
-
-      esp_now_send(mac, data, len);
-      delay(RETRIES_DELAY);
-
-      if (this->_enable_retries) {
-        while(this->_message_sent_status != 0) {
-          USER_DEBUG_PRINTF("try to send over espnow...");
-          esp_now_send(mac, data, len);
-          delay(RETRIES_DELAY);
-          if (++retries > MAX_RETRIES) {
-            break;
-          }
-        }
-      }
-
-      if (cb != NULL) {
-        uint32_t timeout_at_ms = millis() + wait_time;
-        USER_DEBUG_PRINTF("timeout at %lu", timeout_at_ms);
-        USER_DEBUG_PRINTF("millis = %lu", millis());
-        while (millis() < timeout_at_ms) {
-          USER_DEBUG_PRINTF("Waiting a command message...");
-          delay(RETRIES_DELAY);
-        }
-        if (this->_waiting_message_has_arrived==false) {
-          USER_DEBUG_PRINTF("Timeout... %d", _waiting_message_has_arrived);
-          cb();
-        }
-      }
-    }
-
-    void on_message_recv(esp_now_recv_cb_t cb) {
-      if (cb != NULL) {
-        this->_user_on_message_recv = cb;
-      }
-    }
-
-    void on_message_sent(esp_now_send_cb_t cb) {
-      if (cb != NULL) {
-        this->_user_on_message_sent = cb;
-      }
-    }
-
-    void debug(cmmc_debug_cb_t cb) {
-      if (cb!=NULL)
-        this->_user_debug_cb = cb;
-    }
-
-    void enable_retries(bool s) {
-      this->_enable_retries = s;
-    }
+    void send(uint8_t *mac, u8* data, int len, void_cb_t cb = NULL, uint32_t wait_time = 500);
+    void on_message_recv(esp_now_recv_cb_t cb); 
+    void on_message_sent(esp_now_send_cb_t cb); 
+    void debug(cmmc_debug_cb_t cb); 
+    void enable_retries(bool s); 
   private:
-    char debug_buffer[60];
+    // callbacks
     cmmc_debug_cb_t _user_debug_cb;
     esp_now_recv_cb_t _system_on_message_recv;
-    esp_now_send_cb_t _system_on_message_sent;
-
+    esp_now_send_cb_t _system_on_message_sent; 
     esp_now_recv_cb_t _user_on_message_recv;
     esp_now_send_cb_t _user_on_message_sent;
+    // attributes
     uint8_t _message_sent_status;
     bool _enable_retries = false;
     bool _waiting_message_has_arrived;
+    char debug_buffer[60];
 };
 
 #endif //CMMC_ESPNow_H
