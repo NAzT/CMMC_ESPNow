@@ -54,7 +54,7 @@ class CMMC_ESPNow
       this->_waiting_message_has_arrived = false;
 
       uint32_t MAX_RETRIES   = 10;
-      uint32_t RETRIES_DELAY = 20;
+      uint32_t RETRIES_DELAY = 50;
       int retries = 0;
 
       esp_now_send(mac, data, len);

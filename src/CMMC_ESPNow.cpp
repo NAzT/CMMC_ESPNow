@@ -1,26 +1,18 @@
 #include "CMMC_ESPNow.h"
 
 void CMMC_ESPNow::init(int mode) {
+  WiFi.disconnect();
   if (mode == NOW_MODE_SLAVE) {
-    WiFi.disconnect(0);
     WiFi.mode(WIFI_STA);
-    delay(100);
-    Serial.println("====================");
-    Serial.println("   MODE = ESPNOW    ");
-    Serial.println("====================");
-    Serial.println("Initializing ESPNOW...");
-    Serial.println("Initializing... SLAVE");
   }
   else {
-    WiFi.disconnect();
     WiFi.mode(WIFI_STA);
-    delay(50);
   }
 
   if (esp_now_init() == 0) {
-    Serial.println("espnow init ok");
+		USER_DEBUG_PRINTF("espnow init ok");
   } else {
-    Serial.println("espnow init failed");
+		USER_DEBUG_PRINTF("espnow init failed");
     ESP.restart();
     return;
   }
